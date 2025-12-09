@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'firebase_options.dart';
 import 'firebase_services.dart';
-import 'package:sipesantren/core/providers/user_provider.dart'; // New import
+import 'package:sipesantren/core/providers/user_provider.dart';
+import 'package:sipesantren/core/providers/weight_config_provider.dart'; // New import
 
 import 'features/auth/presentation/login_page.dart';
 import 'package:sipesantren/features/dashboard/presentation/dashboard_page.dart'; // New import
@@ -15,7 +16,18 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const ProviderScope(child: MyApp()));
+
+  // Create a ProviderContainer for initial setup
+  final container = ProviderContainer();
+  // Ensure default weights are initialized before the app starts
+  await container.read(initializeWeightConfigProvider.future); // Await the future directly
+
+  runApp(
+    UncontrolledProviderScope(
+      container: container,
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends ConsumerStatefulWidget { // Changed to ConsumerStatefulWidget

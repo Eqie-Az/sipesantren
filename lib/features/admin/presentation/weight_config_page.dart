@@ -43,43 +43,43 @@ class _WeightConfigPageState extends ConsumerState<WeightConfigPage> {
           kehadiran: double.parse(_controllers['kehadiran']!.text),
         );
         await repo.updateWeightConfig(newConfig);
-        Fluttertoast.showToast(msg: "Weights updated successfully!");
+        Fluttertoast.showToast(msg: "Bobot berhasil diperbarui!");
         Navigator.of(context).pop(); // Go back after saving
       } catch (e) {
-        Fluttertoast.showToast(msg: "Failed to update weights: $e");
+        Fluttertoast.showToast(msg: "Gagal memperbarui bobot: $e");
       }
     }
   }
 
   String? _weightValidator(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter a weight';
+      return 'Mohon masukkan bobot';
     }
     final double? weight = double.tryParse(value);
     if (weight == null || weight < 0 || weight > 1) {
-      return 'Weight must be a number between 0 and 1';
+      return 'Bobot harus berupa angka antara 0 dan 1 (mis. 0.30)';
     }
     return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    final weightConfigAsync = ref.watch(weightConfigStreamProvider); // Use the new StreamProvider
+    final weightConfigAsync = ref.watch(weightConfigProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configure Scoring Weights'),
+        title: const Text('Konfigurasi Bobot Penilaian'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
       ),
       body: weightConfigAsync.when(
         data: (config) {
-          // Initialize controllers with current data only if they are empty
-          // Ensure we don't overwrite user input if they are editing
           if (_controllers['tahfidz']!.text.isEmpty) {
-             _controllers['tahfidz']!.text = config.tahfidz.toString();
-             _controllers['fiqh']!.text = config.fiqh.toString();
-             _controllers['bahasaArab']!.text = config.bahasaArab.toString();
-             _controllers['akhlak']!.text = config.akhlak.toString();
-             _controllers['kehadiran']!.text = config.kehadiran.toString();
+            _controllers['tahfidz']!.text = config.tahfidz.toStringAsFixed(2);
+            _controllers['fiqh']!.text = config.fiqh.toStringAsFixed(2);
+            _controllers['bahasaArab']!.text = config.bahasaArab.toStringAsFixed(2);
+            _controllers['akhlak']!.text = config.akhlak.toStringAsFixed(2);
+            _controllers['kehadiran']!.text = config.kehadiran.toStringAsFixed(2);
           }
 
           return Form(
@@ -87,15 +87,32 @@ class _WeightConfigPageState extends ConsumerState<WeightConfigPage> {
             child: ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
-                _buildWeightInput('Tahfidz', _controllers['tahfidz']!),
-                _buildWeightInput('Fiqh', _controllers['fiqh']!),
-                _buildWeightInput('Bahasa Arab', _controllers['bahasaArab']!),
-                _buildWeightInput('Akhlak', _controllers['akhlak']!),
-                _buildWeightInput('Kehadiran', _controllers['kehadiran']!),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _saveWeights,
-                  child: const Text('Save Weights'),
+                _buildWeightInputCard('Tahfidz', _controllers['tahfidz']!),
+                const SizedBox(height: 12),
+                _buildWeightInputCard('Fiqh', _controllers['fiqh']!),
+                const SizedBox(height: 12),
+                _buildWeightInputCard('Bahasa Arab', _controllers['bahasaArab']!),
+                const SizedBox(height: 12),
+                _buildWeightInputCard('Akhlak', _controllers['akhlak']!),
+                const SizedBox(height: 12),
+                _buildWeightInputCard('Kehadiran', _controllers['kehadiran']!),
+                const SizedBox(height: 30),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _saveWeights,
+                    icon: const Icon(Icons.save),
+                    label: const Text('Simpan Bobot'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -107,18 +124,23 @@ class _WeightConfigPageState extends ConsumerState<WeightConfigPage> {
     );
   }
 
-  Widget _buildWeightInput(String label, TextEditingController controller) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
+  Widget _buildWeightInputCard(String label, TextEditingController controller) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: label,
+            border: InputBorder.none, // Remove border from TextFormField itself
+            contentPadding: EdgeInsets.zero, // Remove default padding
+          ),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          validator: _weightValidator,
+          onSaved: (value) => controller.text = value!,
         ),
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        validator: _weightValidator,
-        onSaved: (value) => controller.text = value!,
       ),
     );
   }
