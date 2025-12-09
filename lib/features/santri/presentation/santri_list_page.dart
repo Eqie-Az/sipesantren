@@ -5,6 +5,8 @@ import 'package:sipesantren/core/models/santri_model.dart';
 import 'package:sipesantren/core/repositories/santri_repository.dart';
 import 'package:sipesantren/features/penilaian/presentation/input_penilaian_page.dart';
 import 'package:sipesantren/features/rapor/presentation/rapor_page.dart';
+import 'package:sipesantren/firebase_services.dart';
+import 'package:sipesantren/features/auth/presentation/login_page.dart';
 
 class SantriListPage extends ConsumerStatefulWidget {
   const SantriListPage({super.key});
@@ -38,6 +40,17 @@ class _SantriListPageState extends ConsumerState<SantriListPage> {
             icon: const Icon(Icons.person_add),
             onPressed: () {
               _showAddSantriDialog();
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await FirebaseServices().logout();
+              if (context.mounted) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                );
+              }
             },
           ),
         ],
